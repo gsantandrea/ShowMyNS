@@ -1,0 +1,28 @@
+*.class
+*.log
+
+#text editor temp files
+*~
+
+# sbt specific
+dist/*
+target/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+
+# Scala-IDE specific
+.scala_dependencies
+
+# Eclipse specific
+.project
+.classpath
+.cache
+.worksheet
+.settings/
+
+
+# Project Speficic
+/**/layout.json
+/**/*.sc

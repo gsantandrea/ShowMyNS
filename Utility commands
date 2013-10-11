@@ -1,0 +1,51 @@
+myIP=$(lynx --dump http://ipecho.net/plain)
+
+#####################################################################################################
+#create some linux bridges with interfaces attached to it:
+brctl addbr lbr1
+brctl addbr lbr2
+ip tuntap add mode tap t4
+ip tuntap add mode tap t5
+ip tuntap add mode tap t6
+brctl addif lbr1 t4
+brctl addif lbr1 t5
+brctl addif lbr2 t6
+ip netns add netns_one 
+ip netns exec netns_one bash
+brctl addbr lbr6
+brctl addbr lbr5
+ip link add v0 type veth peer name v1
+brctl addif lbr6 v0
+brctl addif lbr5 v1
+
+#####################################################################################################
+#create a sample l2tp tunnel (only the local part) in a namespace
+ip netns exec netns_one bash
+ip tuntap add mode tap v0   
+ip addr add 10.98.0.1/24 dev v0
+modprobe l2tp_ip   
+modprobe l2tp_ip 6
+modprobe l2tp_ppp
+modprobe l2tp_eth
+localIP=10.98.0.1
+otherIP=10.98.0.3
+ip l2tp add tunnel tunnel_id 11 peer_tunnel_id 12 encap udp local $localIP remote $otherIP udp_sport 5600 udp_dport 5601
+ip l2tp add session name l2tp_test2 tunnel_id  11 session_id 101 peer_session_id 102 && sudo ip link set l2tp_test1 up mtu 1446
+
+#####################################################################################################
+#create a OVS bridge with tagged OVS internal ifaces, gre tunnels
+ovs-vsctl add-br br0
+ovs-vsctl add-port br0 ifacevlan9 tag=9 -- set interface ifacevlan9 type=internal
+
+ovs-vsctl add-port br-ex  #the bridged connected to the outside 
+ovs-vsctl add-port br-ex tep0 --set interface tep0 type=internal
+ip addr add 10.0.0.1/24 dev tep0  
+ovs-vsctl add-br br-isolated 
+ovs-vsctl add-port br-isolated gre0 -- set interface gre0 type=gre options:remote_ip=10.0.0.2
+
+
+
+#####################################################################################################
+#create a veth pair
+ip link add v0 type veth peer name v1
+
