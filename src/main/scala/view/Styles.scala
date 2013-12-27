@@ -84,6 +84,6 @@ object Styles {
       mxConstants.STYLE_OPACITY -> new java.lang.Integer(80),
       mxConstants.STYLE_ROUNDED -> new java.lang.Boolean(false),
       mxConstants.STYLE_FONTCOLOR -> "#000000",
-      mxConstants.STYLE_FILLCOLOR -> "#e2e2ef")
+      mxConstants.STYLE_FILLCOLOR -> "#4a73b9")
   
 }

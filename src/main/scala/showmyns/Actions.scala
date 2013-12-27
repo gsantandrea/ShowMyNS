@@ -166,7 +166,7 @@ object Actions {
   def parseIpAddrOutputs(): List[TempIface] = {
     val outputs = if (sampleOutputs) SampleOutputs.ipaddr else execInAllNS("ip address show")
     
-    val regEx = """(?m)^(\d+): """.r; 	//regex "dot all mode" set 
+    val regEx = """(?m)^(\d+): """.r; 	//regex "multi line mode" set
     val tempIfList = 
       for( 
         (namespace, output) <- outputs;                        //list of (namespace, command output) tuples

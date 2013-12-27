@@ -80,8 +80,8 @@ If you want to repackage the application:
 It will create a file named showMy1.jar in the target/scala-2.10  folder.
 
  
-KNOWN LIMITATIONS
-=================
+KNOWN LIMITATIONS/PROBLEMS
+==========================
 Only IPv4 addresses are shown.
 The following elements are not shown in the graph:
 * "ovs-system", because it's only an implementation detail of openvswitch (it serves as as a shared datapath for the ovs bridges).
@@ -91,11 +91,13 @@ It assumes loopback interface having  "lo" name.
 It assumes that vlan aliases are shown in the form "eth0.1234@eth0"
 
 
-WHY SOME LINUX LINUX BRIDGES APPEARS ALSO AS OVS BRIDGES?
-=========================================================
+Some OVS Bridges appear as linux bridges.
 From packages.debian.org : 
 "openvswitch-brcompat provides a way for applications that use the Linux bridge to gradually migrate to Open vSwitch. Programs that ordinarily control the Linux bridge module, such as "brctl", instead control the Open vSwitch kernel-based switch"
 
+
+The program terminates with the error: "seting the network namespace failed". 
+It's a known namespace problem. Reboot the machine.
 
 TODO
 ====
