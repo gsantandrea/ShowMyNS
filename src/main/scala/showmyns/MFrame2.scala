@@ -79,8 +79,14 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
               val mtu = "<br> mtu: " + iface.mtu
               val namespace = "<br> namespace: " + iface.namespace.getOrElse("")
               val flags = "<br> flags: " + iface.flags
-
-              s"<html> $typ $flags $state $mac $addr $mtu $tag $tun $namespace</html>"
+              val ofport= {
+                val p=Actions.getOFPort(iface.name)
+                p match {  
+                  case Some(_) => "<br> ofport: " + p.get
+                  case None => ""
+                }
+              }
+              s"<html> $typ $flags $state $mac $addr $mtu $tag $tun $namespace $ofport</html>"
             case linBr: LinuxBr =>
               val name = linBr.name
               val id = s"<br>id: ${linBr.id}"
@@ -93,8 +99,14 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
               val n = s"<br>name = ${ovsP.name}"
               val o = s"<br>options: ${ovsP.options}" 
               val t = s"<br>type: ${ovsP.portType.getOrElse("")}" 
-              
-              s"<html>OVS port $n $t $o</html>"
+              val ofport= {
+                val p=Actions.getOFPort(ovsP.name)
+                p match {  
+                  case Some(_) => "<br> ofport: " + p.get
+                  case None => ""
+                }
+              }
+              s"<html>OVS port $n $t $o $ofport</html>"
             case _ => super.convertValueToString(cell)
 
           }
@@ -106,13 +118,13 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
         cell match {
           case cell: mxICell => cell.getValue match {
             case iface: Iface =>
-              iface.name
+              s"${iface.name}"
             case linBr: LinuxBr =>
               linBr.name + "(bridge)"
             case ovsB: OVSBridge =>
               ovsB.name + "(bridge)"
             case ovsP: OVSPort =>
-              ovsP.name
+              s"${ovsP.name}"
             case _ => super.convertValueToString(cell)
 
           }

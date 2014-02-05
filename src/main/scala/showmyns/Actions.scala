@@ -68,12 +68,13 @@ case class LinuxBr(name: String, id: String, stp: Boolean, nics: List[String], n
  * Test application
  */
 object Test extends App {
-  println("Interfaces: \n" + Actions.getAllIfaces.mkString("\n----\n"))
-  println("\nOVS Bridges: \n" + Actions.getOVSBridges.mkString("\n----\n"))
-  println("\nLinux bridges: \n" + Actions.getLinuxBridges.mkString("\n") + "\n")
-  println("\nRoutes: \n" + Actions.getRoutes.mkString("\n----\n"))
-  println("\nL2tp sessions : \n" + Actions.getSessions.mkString("\n") + "\n")
-  println("\nL2tp tunnels : \n" + Actions.getTunnels.mkString("\n") + "\n")
+//  println("Interfaces: \n" + Actions.getAllIfaces.mkString("\n----\n"))
+//  println("\nOVS Bridges: \n" + Actions.getOVSBridges.mkString("\n----\n"))
+//  println("\nLinux bridges: \n" + Actions.getLinuxBridges.mkString("\n") + "\n")
+//  println("\nRoutes: \n" + Actions.getRoutes.mkString("\n----\n"))
+//  println("\nL2tp sessions : \n" + Actions.getSessions.mkString("\n") + "\n")
+//  println("\nL2tp tunnels : \n" + Actions.getTunnels.mkString("\n") + "\n")
+  println(s"port: ${Actions.getOFPort("f")}")
 }
 
 /*
@@ -86,6 +87,21 @@ object Actions {
 
   //checkers for the interface type (see goo.gl/cfwiR3) 
 
+  def getOFPort(iface:String):Option[Int] = {
+    
+    val out= try {
+      (s"sudo ovs-vsctl get interface $iface ofport").!!(ProcessLogger(line => ())) //suppress output
+    }catch {
+      case e:Exception => ""
+    }
+    val port = out match {
+      case "" => None
+      case s => Some(s.replaceAll("\n", "").toInt)
+    }
+    
+    port
+  }
+    
   def isPhys(iface: String): Boolean = getPhysIfaces.contains(iface)
 
   def isL2tp(iface: String): Boolean = getSessions exists (_.iface == iface)
