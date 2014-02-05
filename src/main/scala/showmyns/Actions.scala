@@ -74,7 +74,7 @@ object Test extends App {
 //  println("\nRoutes: \n" + Actions.getRoutes.mkString("\n----\n"))
 //  println("\nL2tp sessions : \n" + Actions.getSessions.mkString("\n") + "\n")
 //  println("\nL2tp tunnels : \n" + Actions.getTunnels.mkString("\n") + "\n")
-  println(s"port: ${Actions.getOFPort("f")}")
+  println(s"port: ${Actions.dumpFlows("br-ex")}")
 }
 
 /*
@@ -100,6 +100,23 @@ object Actions {
     }
     
     port
+  }
+  
+  def dumpFlows (ovsbridge:String):Option[String]={
+     val out= try {
+      val o1=(s"sudo ovs-ofctl dump-flows ${ovsbridge}").!!(ProcessLogger(line => ())) //suppress output
+      o1.split("\n").drop(1).map{
+        str => str.split(",").drop(6).mkString(",") 
+      }.mkString("\n")
+    }catch {
+      case e:Exception => ""
+    }
+    val flows = out match {
+      case "" => None
+      case s => Some(s)
+    }
+    
+    flows
   }
     
   def isPhys(iface: String): Boolean = getPhysIfaces.contains(iface)

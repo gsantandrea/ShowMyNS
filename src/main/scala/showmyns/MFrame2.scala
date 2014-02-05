@@ -27,6 +27,8 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
   setSize(1000, 600)
   UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
   javax.swing.ToolTipManager.sharedInstance().setInitialDelay(100) //faster tooltips
+  javax.swing.ToolTipManager.sharedInstance().setDismissDelay(70000)
+  
   private var graph: mxGraph = null
 
   addWindowListener(new java.awt.event.WindowAdapter() {
@@ -94,7 +96,11 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
               val namespace = "<br> namespace: " + linBr.namespace.getOrElse("")
               s"<html>Linux Bridge <br>$name $id $stp $namespace</html>"
             case ovsB: OVSBridge =>
-              s"<html> Open vSwitch Bridge<br>${ovsB.name} </html>"
+              val flows = Actions.dumpFlows(ovsB.name) match {
+                  case Some(f) => "<br> <br>flows: <br> " + f.replaceAll("\n", "<br>")
+                  case None => ""
+              }
+              s"<html> Open vSwitch Bridge<br>${ovsB.name} ${flows} </html>"
             case ovsP: OVSPort =>
               val n = s"<br>name = ${ovsP.name}"
               val o = s"<br>options: ${ovsP.options}" 
@@ -149,6 +155,7 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
     graphComponent.getGraphControl().addMouseListener(new MouseAdapter() {
       override def mousePressed(e: MouseEvent) {
         val cell = graphComponent.getCellAt(e.getX(), e.getY())
+        
 //        println("Mouse click in graph component")
 //        if (cell != null) println("cell=" + graph.getLabel(cell))
 
