@@ -20,6 +20,7 @@ import com.mxgraph.util.mxEventSource.mxIEventListener
 import java.awt.event.MouseEvent
 import com.mxgraph.util.mxEventObject
 import Actions._
+import javax.swing.SwingUtilities
 
 class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener {
   //--constructor--
@@ -30,7 +31,7 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
   javax.swing.ToolTipManager.sharedInstance().setDismissDelay(70000)
   
   private var graph: mxGraph = null
-
+  var graphComponent: mxGraphComponent = null
   addWindowListener(new java.awt.event.WindowAdapter() {
     override def windowClosing(evt: java.awt.event.WindowEvent) {
       println("Layout saved in file \"layout.json\".\nExiting..")
@@ -41,14 +42,13 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
   private val screenx = ((dimension.getWidth() - getWidth()) / 2).toInt
   private val screeny = ((dimension.getHeight() - getHeight()) / 2).toInt
   setLocation(screenx, screeny) //center
+  var firstDrawing=true
   drawGraph()
   setVisible(true)
   //--end of constructor --
 
   override def keyPressed(e: java.awt.event.KeyEvent) { //used by the JFrame and the mxGraphComponent
     if (e.getKeyCode() == 116) { //F5 KEYCODE
-      saveLayout(graph)
-      graph.removeCells(graph.getChildVertices(graph.getDefaultParent()))
       drawNetworkElements()
     }
   }
@@ -149,16 +149,22 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
     graph.setDisconnectOnMove(false)
     graph.setSplitEnabled(false) // http://forum.jgraph.com/questions/121/how-do-you-prevent-vertices-dropped-on-edges-from-cutting-that-edge
 
-    val graphComponent = new mxGraphComponent(graph)
+    graphComponent = new mxGraphComponent(graph)
 
     //TODO: implement actions here (for example "interface remove",..)
     graphComponent.getGraphControl().addMouseListener(new MouseAdapter() {
       override def mousePressed(e: MouseEvent) {
         val cell = graphComponent.getCellAt(e.getX(), e.getY())
-        
-//        println("Mouse click in graph component")
-//        if (cell != null) println("cell=" + graph.getLabel(cell))
+        checkPopup(e)
+        //if (cell != null) println("cell=" + graph.getLabel(cell))
 
+      }
+      override def mouseReleased(e: MouseEvent) {
+        val cell = graphComponent.getCellAt(e.getX(), e.getY())
+        checkPopup(e)
+      }
+      def checkPopup(e:MouseEvent) = {
+        if (e.isPopupTrigger()) showPopupMenu(e)
       }
     })
 
@@ -196,7 +202,11 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
     }
   }
 
+  //refresh the screen
   def drawNetworkElements() {
+    if(!firstDrawing) saveLayout(graph)
+    firstDrawing=false
+    graph.removeCells(graph.getChildVertices(graph.getDefaultParent()))
     val parent1 = graph.getDefaultParent.asInstanceOf[mxCell]
     val h = getHeight()
     val w = getWidth()
@@ -493,5 +503,11 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
       })
       morph.startAnimation();
     }
+  }
+  def showPopupMenu(e:MouseEvent):Unit = {
+    val pt = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(),graphComponent);
+	val menu = new PopupMenu(MFrame2.this);
+	menu.show(graphComponent, pt.x, pt.y);
+    e.consume();
   }
 }
