@@ -66,6 +66,9 @@ class CreateLinBr(frame: MFrame2) extends AbstractAction("Create a linux bridge"
 
 class RemoveLinBr(lbr:String,frame: MFrame2) extends AbstractAction("Remove this Linux bridge") {
   override def actionPerformed(e: ActionEvent) {
+    val cmd0 = s"sudo ip link set $lbr down"
+    println(s"-->   $cmd0")
+    cmd0.!!
     val cmd = s"sudo brctl delbr $lbr"
     println(s"-->   $cmd")
     cmd.!!
