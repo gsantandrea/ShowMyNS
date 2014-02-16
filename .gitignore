@@ -26,3 +26,6 @@ project/plugins/project/
 # Project Speficic
 /**/layout.json
 /**/*.sc
+
+#
+nohup.out
