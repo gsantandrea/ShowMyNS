@@ -104,12 +104,12 @@ object Actions {
   
   def dumpFlows (ovsbridge:String):Option[String]={
      val out= try {
-      val o1=(s"sudo ovs-ofctl dump-flows ${ovsbridge}").!!(ProcessLogger(line => ())) //suppress output
+      val o1=(s"sudo ovs-ofctl dump-flows ${ovsbridge}").!!//(ProcessLogger(line => ())) //suppress output
       o1.split("\n").drop(1).map{
         str => str.split(",").drop(6).mkString(",") 
       }.mkString("\n")
     }catch {
-      case e:Exception => ""
+      case e:Exception => println(s"Catched exception $e"); ""
     }
     val flows = out match {
       case "" => None
@@ -535,4 +535,8 @@ object Actions {
     case None => throw new Exception(s"No route found for $ip (not even a default route)!")
   }
 
+  def findVLANMode(iface:String):String = {
+    ""
+  }
+  
 }

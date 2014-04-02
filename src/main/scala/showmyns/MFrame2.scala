@@ -43,6 +43,9 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
   private val screeny = ((dimension.getHeight() - getHeight()) / 2).toInt
   setLocation(screenx, screeny) //center
   var firstDrawing=true
+  val home = System.getProperty("user.home");
+  val f = new File(home +"/.showmynslayout")
+    
   drawGraph()
   setVisible(true)
   //--end of constructor --
@@ -178,11 +181,11 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
 
   }
 
+  
   def loadLayout() = {
-    val f = new File("layout.json")
     if (f.exists) {
       println("loading layout from file..")
-      val str = Source.fromFile("layout.json").getLines.mkString("\n")
+      val str = Source.fromFile(f).getLines.mkString("\n")
 
       import spray.json._
       import DefaultJsonProtocol._
@@ -481,7 +484,6 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
     import spray.json._
     import DefaultJsonProtocol._
     val jsonpos = positions.toJson.prettyPrint
-    val f = new File("layout.json")
     val writer = new java.io.PrintWriter(f)
     writer.write(jsonpos)
     writer.close()

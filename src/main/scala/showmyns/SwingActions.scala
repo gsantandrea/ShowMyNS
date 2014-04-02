@@ -85,6 +85,17 @@ class RemVethPair (name:String,frame: MFrame2) extends AbstractAction("Remove th
   }
 }
 
+class RemTunTap (name:String,frame: MFrame2) extends AbstractAction("Remove this tuntap") {
+  override def actionPerformed(e: ActionEvent) {
+    val cmd = s"sudo ip link del $name"
+    println(s"-->   $cmd")
+    cmd.!!
+    frame.drawNetworkElements
+  }
+}
+
+
+
 class CreateVethPair(frame: MFrame2) extends AbstractAction("Create a veth pair") {
   override def actionPerformed(e: ActionEvent) {
     val first= JOptionPane.showInputDialog("Type the name of the first interface of the veth pair", "")

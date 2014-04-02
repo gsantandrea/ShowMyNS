@@ -17,6 +17,8 @@ class PopupMenu(frame: MFrame2) extends JPopupMenu{
       case i:Iface => 
         add(new Sniff(i.name))
         if(i.ifaceType=="veth-pair") add(new RemVethPair(i.name,frame))
+        if(i.ifaceType=="tuntap") add(new RemTunTap(i.name,frame))
+        
       case p:OVSPort => 
         add(new Sniff(p.name)) 
       case ovsbr:OVSBridge =>
