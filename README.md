@@ -14,7 +14,7 @@ Official site: https://sites.google.com/site/showmynetworkstate/
 
 The goal of this application is to graphically display the virtual/physical network topology inside a single host.
 You can see additional info by moving the mouse over the network elements and waiting for the tooltip to appear.
-Press F5 to refresh the graph. The position of graph elements will be saved in a file named `.showmynslayout` in the home folder for the next launch. The network info is retrieved by parsing bash commands output. JRE (Java Runtime Environment) is  needed to run this application. It was compiled with OpenJDK 1.7.0_40 through Scala SBT. I've also added some basic functionality to add/remove network elements.
+Press F5 to refresh the graph or to save the current layout. The position of graph elements will be saved in a file named `.showmynslayout` in the home folder for the next launch. The network info is retrieved by parsing bash commands output. JRE (Java Runtime Environment) is  needed to run this application. It was compiled with OpenJDK 1.7.0_40 through Scala SBT. I've also added some basic functionality to add/remove network elements.
 
 
 
@@ -47,8 +47,6 @@ IMPORTANT NOTES: read  this before executing!
  
 
 * using your packet manager you must install `ethtool`,`openvswitch` , `bridge-utils`
-
-* If you don't want to insert password every time you have to add NOPASSWD configuration for your user in the `/etc/sudoers` file.  Here's a brief tutorial: if you use Fedora and belong to the sudoer group named wheel you have to modify the file like the following: `%wheel ALL=(ALL)	NOPASSWD: ALL`  or in Ubuntu: `%sudo  ALL=(ALL)	NOPASSWD: ALL`. Use "id" command to discover the groups you belong to. Alternatively the sudo privilege may be related to your user name: `james  ALL=(ALL)	NOPASSWD: ALL`. Search on Google if you need more info.
 
 *  You can download an already compiled jar file from the [official site](https://sites.google.com/site/showmynetworkstate/). To run this program execute: 
      `sudo java -jar showMy1.jar`

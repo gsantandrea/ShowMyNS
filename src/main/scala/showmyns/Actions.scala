@@ -91,7 +91,7 @@ object Actions {
   def getOFPort(iface:String):Option[Int] = {
     
     val out= try {
-      (s"sudo ovs-vsctl get interface $iface ofport").!!(ProcessLogger(line => ())) //suppress output
+      (s"ovs-vsctl get interface $iface ofport").!!(ProcessLogger(line => ())) //suppress output
     }catch {
       case e:Exception => ""
     }
@@ -105,7 +105,7 @@ object Actions {
   
   def dumpFlows (ovsbridge:String):Option[String]={
      val out= try {
-      val o1=(s"sudo ovs-ofctl dump-flows ${ovsbridge}").!!//(ProcessLogger(line => ())) //suppress output
+      val o1=(s"ovs-ofctl dump-flows ${ovsbridge}").!!//(ProcessLogger(line => ())) //suppress output
       o1.split("\n").drop(1).map{
         str => str.split(",").drop(6).mkString(",") 
       }.mkString("\n")
@@ -130,7 +130,7 @@ object Actions {
 
   def isTunTap(tempIface: TempIface): Boolean = {
     val netnsprefix = tempIface.namespace match {
-      case Some(ns) => s"sudo ip netns exec $ns "
+      case Some(ns) => s"ip netns exec $ns "
       case None => ""
     }
     val cmd = s"${netnsprefix}ls /sys/class/net/${tempIface.name}/tun_flags"
@@ -150,12 +150,12 @@ object Actions {
    *
    * It executes the following bash command:
    *  if I'm in the default namespace:  ethtool -S <iface> | awk '/peer_ifindex/ {print $2}'
-   *  if in another namespace:  sudo ip netns exec <ns> ethtool -S <iface>  | awk '/peer_ifindex/ {print $2}'
+   *  if in another namespace:  ip netns exec <ns> ethtool -S <iface>  | awk '/peer_ifindex/ {print $2}'
    *
    */
   def getVethPeerIndex(iface: Iface): Option[Int] = {
     val netnsprefix = iface.namespace match {
-      case Some(ns) => Seq("sudo", "ip", "netns", "exec", ns)
+      case Some(ns) => Seq("ip", "netns", "exec", ns)
       case None => Seq()
     }
     val peerIdxStr = ((netnsprefix ++ Seq("ethtool", "-S", iface.name)) #| Seq("awk", "/peer_ifindex/ {print $2}")) !! (ProcessLogger(line => ())) //suppress output
@@ -188,7 +188,7 @@ object Actions {
   }
 
   def getNamespaces(): Array[String] = {
-    val nsStr = "sudo ip netns list".!!
+    val nsStr = "ip netns list".!!
     val namespaces = if (nsStr != "") nsStr.split("\n") else Array[String]()
     if (namespaces.isEmpty) Array("") else "" +: namespaces //add default namespace as empty string
   }
@@ -266,7 +266,7 @@ object Actions {
       def isLinuxBrIface(tempIface: TempIface): Boolean = {
 
         val netnsprefix = tempIface.namespace match {
-          case Some(ns) => s"sudo ip netns exec $ns "
+          case Some(ns) => s"ip netns exec $ns "
           case None => ""
         }
         val cmd = s"${netnsprefix}ls /sys/devices/virtual/net/${tempIface.name}/bridge"
@@ -342,10 +342,10 @@ object Actions {
  
     val ovs_show_out =
       if (sampleOutputs) SampleOutputs.ovs_show
-      else if (exitCode("sudo ovs-vsctl show") != 0) { 
+      else if (exitCode("ovs-vsctl show") != 0) { 
         println("openvswitch not installed or not running!")
         return List()
-      } else "sudo ovs-vsctl show".!!
+      } else "ovs-vsctl show".!!
       
     def parseOpts(opts: Option[String]): Map[String, String] = { //parse options: {remote_ip="8.0.1.1", ....}
       opts match {
@@ -402,10 +402,10 @@ object Actions {
    * Parse "ip l2tp show tunnel" commmands in all namespaces
    */
   def getTunnels(): List[Tunnel] = {
-    if (exitCode("sudo ip l2tp show tunnel") != 0) { //println("ip l2tp not available in this host." )
+    if (exitCode("ip l2tp show tunnel") != 0) { //println("ip l2tp not available in this host." )
       return List()
     }
-    val tunnels = execInAllNS("sudo ip l2tp show tunnel")
+    val tunnels = execInAllNS("ip l2tp show tunnel")
 
     tunnels.flatMap {
       case (ns, tun) =>
@@ -424,10 +424,10 @@ object Actions {
    * Parse "ip l2tp show session" commmands in all namespaces
    */
   def getSessions(): List[Session] = {
-    if (exitCode("sudo ip l2tp show session") != 0) { //println("ip l2tp not available in this host." )
+    if (exitCode("ip l2tp show session") != 0) { //println("ip l2tp not available in this host." )
       return List()
     }
-    val sessions = execInAllNS("sudo ip l2tp show session")
+    val sessions = execInAllNS("ip l2tp show session")
     sessions.flatMap {
       case (ns, sess) =>
         val namespace = if (ns == "") None else Some(ns)
@@ -442,7 +442,7 @@ object Actions {
   def execInAllNS(cmd: String): List[(String, String)] = {
     val namespaces = getNamespaces().toList
     for (ns <- namespaces) yield {
-      val cmd_out = if (ns.isEmpty) cmd.!! else s"sudo ip netns exec $ns $cmd".!!
+      val cmd_out = if (ns.isEmpty) cmd.!! else s"ip netns exec $ns $cmd".!!
       (ns -> cmd_out)
     }
   }
@@ -456,7 +456,7 @@ object Actions {
    */
   def getLinuxBridges: List[LinuxBr] = {
 
-    val br_outputs0 = execInAllNS("sudo brctl show")
+    val br_outputs0 = execInAllNS("brctl show")
     val br_outputs = br_outputs0.map {
       case (ns, out) => (ns, out.substring(out.indexOf('\n') + 1)) //remove first line
     }
@@ -543,11 +543,11 @@ object Actions {
    */
   def getVLANMode(port:String):String = {
 	def stripLast(str:String):String = str.substring(0, str.length-1)  
-    val trunksStr = s"sudo ovs-vsctl --format=json get port $port trunks".!!
+    val trunksStr = s"ovs-vsctl --format=json get port $port trunks".!!
     val trunksStr2 = stripLast(trunksStr)   
-    val tagStr = (s"sudo ovs-vsctl --format=json get port $port tag").!!
+    val tagStr = (s"ovs-vsctl --format=json get port $port tag").!!
     val tagStr2 = stripLast(tagStr)
-    val vlan_modeStr = s"sudo ovs-vsctl --format=json  get port $port vlan_mode".!!
+    val vlan_modeStr = s"ovs-vsctl --format=json  get port $port vlan_mode".!!
     val vlan_modeStr2 = stripLast(vlan_modeStr)
     
 
