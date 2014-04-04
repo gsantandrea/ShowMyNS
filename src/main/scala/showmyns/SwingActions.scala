@@ -49,6 +49,8 @@ class CreateLinBr(frame: MFrame2) extends AbstractAction("Create a linux bridge"
     val lbr= JOptionPane.showInputDialog("Type the Linux bridge name to create", "")
     if (lbr == null) return
     execute(s"brctl addbr $lbr")
+    execute(s"ip link set up $lbr")
+    
     frame.drawNetworkElements
   }
 }
