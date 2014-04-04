@@ -91,7 +91,8 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
                   case None => ""
                 }
               }
-              s"<html> $typ $flags $state $mac $addr $mtu $tag $tun $namespace $ofport</html>"
+              val vlanMode = if(ofport != "") s"<br>${getVLANMode(iface.name)}" else ""
+              s"<html> $typ $flags $state $mac $addr $mtu $tag $tun $namespace $ofport $vlanMode </html>"
             case linBr: LinuxBr =>
               val name = linBr.name
               val id = s"<br>id: ${linBr.id}"
@@ -115,7 +116,9 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
                   case None => ""
                 }
               }
-              s"<html>OVS port $n $t $o $ofport</html>"
+              val vlanMode = if(ofport != "") s"<br>${getVLANMode(ovsP.name)}"  else  ""
+              
+              s"<html>OVS port $n $t $o $ofport $vlanMode  </html>"
             case _ => super.convertValueToString(cell)
 
           }
@@ -218,7 +221,6 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
     val physIfaces = getPhysIfaces
     val ifaces = getAllIfaces
     val ovsbridges = getOVSBridges
-
     val linuxBridges = getLinuxBridges
 
     //add styles
@@ -296,7 +298,7 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
       //draw patch ports
       xstep = 20
       hdraw = h - 110
-      val patchPorts = ovsbridges flatMap (_.ports.filter(_.portType.getOrElse("") == "patch"))
+      val patchPorts:List[OVSPort] = ovsbridges flatMap (_.ports.filter(_.portType.getOrElse("") == "patch"))
       patchPorts foreach { patchPort =>
         graph.insertVertex(parent1, null, patchPort, incXstep(100), hdraw, 80, 30, "patch", false)
       }
@@ -308,7 +310,7 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
 
       //draw gre tunnels on the same line
       hdraw = h - 140
-      val greTunnels = ovsbridges flatMap (_.ports.filter(_.portType.getOrElse("") == "gre"))
+      val greTunnels: List[OVSPort] = ovsbridges flatMap (_.ports.filter(_.portType.getOrElse("") == "gre"))
       greTunnels foreach { greTun =>
         graph.insertVertex(parent1, null, greTun, incXstep(100), hdraw, 80, 30, "gre", false)
       }
@@ -329,7 +331,7 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
       //for example patch port that are not completely deleted and remain as garbage
       //TODO: why do these ports exist?
       hdraw = h - 140
-      val otherOVSPorts = for (
+      val otherOVSPorts: List[OVSPort] = for (
           br <- ovsbridges;
           port <- br.ports;
           typ = port.portType.getOrElse("");

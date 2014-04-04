@@ -14,7 +14,7 @@ Official site: https://sites.google.com/site/showmynetworkstate/
 
 The goal of this application is to graphically display the virtual/physical network topology inside a single host.
 You can see additional info by moving the mouse over the network elements and waiting for the tooltip to appear.
-Press F5 to refresh the graph. The position of graph elements will be saved in a file named layout.json for the next launch. The network info is retrieved by parsing bash commands output. JRE (Java Runtime Environment) is  needed to run this application. It was compiled with OpenJDK 1.7.0_40 through Scala SBT. I've also added some basic functionality to add/remove bridge or ports.
+Press F5 to refresh the graph. The position of graph elements will be saved in a file named `.showmynslayout` in the home folder for the next launch. The network info is retrieved by parsing bash commands output. JRE (Java Runtime Environment) is  needed to run this application. It was compiled with OpenJDK 1.7.0_40 through Scala SBT. I've also added some basic functionality to add/remove network elements.
 
 
 
@@ -23,7 +23,7 @@ This application was born from the need to understand in deep the Openstack netw
 NOTE: this program is not meant to be a replacement of command line network commands, but can be really helpful if you want to visualize the topology as a whole.
 
 
-TIP: if you find the `ip address show` CLI command confusing I also made a shell alias to highlight interface names and IPs in the command output.
+If you find the `ip address show` CLI command confusing I also made a shell alias to highlight interface names and IPs in the command output.
 Put the following line in your .bashrc file:
 
 `alias ipa="ip address show | grep --color=always  -E '([0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}|$' | GREP_COLORS='mt=01;34' grep -P '(\s.+:\s)|$'"`
@@ -31,12 +31,12 @@ Put the following line in your .bashrc file:
 
 The main bash commands executed by the application are:
 
-* `sudo ip netns <namespace> exec sudo ip address show`
-* `sudo ip netns <namespace> exec sudo brctl show`
-* `sudo ip netns <namespace> exec sudo ovs-vsctl show`
-* `sudo ip netns <namespace> exec sudo brctl show`
-* `sudo ip netns <namespace> exec sudo brctl delbr`
-* `sudo ip netns <namespace> exec sudo brctl addbr`
+* `ip netns <namespace> exec ip address show`
+* `ip netns <namespace> exec brctl show`
+* `ip netns <namespace> exec ovs-vsctl show`
+* `ip netns <namespace> exec brctl show`
+* `ip netns <namespace> exec brctl delbr`
+* `ip netns <namespace> exec brctl addbr`
 
 
 
@@ -44,16 +44,17 @@ The main bash commands executed by the application are:
 IMPORTANT NOTES: read  this before executing!
 ---------------------------------------------
 
-* To run this program the file /etc/sudoers must be modified by commenting the following line:   `Defaults    requiretty`   because "ShowMyNetworkState" will run system commands with "sudo" 
+ 
 
 * using your packet manager you must install `ethtool`,`openvswitch` , `bridge-utils`
 
 * If you don't want to insert password every time you have to add NOPASSWD configuration for your user in the `/etc/sudoers` file.  Here's a brief tutorial: if you use Fedora and belong to the sudoer group named wheel you have to modify the file like the following: `%wheel ALL=(ALL)	NOPASSWD: ALL`  or in Ubuntu: `%sudo  ALL=(ALL)	NOPASSWD: ALL`. Use "id" command to discover the groups you belong to. Alternatively the sudo privilege may be related to your user name: `james  ALL=(ALL)	NOPASSWD: ALL`. Search on Google if you need more info.
 
 *  You can download an already compiled jar file from the [official site](https://sites.google.com/site/showmynetworkstate/). To run this program execute: 
-     `java -jar showMy1.jar`
+     `sudo java -jar showMy1.jar`
 
-   Scala and JGraphx library are already bundled in the jar through sbt assembly 
+   Scala and JGraphx library are already bundled in the jar through sbt assembly. If you want to repackage the application (with SBT and Scala installed) type `sbt assembly` in the root project folder, it will create a file named showMy1.jar in the target/scala-2.10  folder.
+   
 
 
 The following network elements are shown:
@@ -72,7 +73,6 @@ The following network elements are shown:
  * other OVS port: a OVS port that doesn't fall in any of the previous categories. For example a not completely deleted patch port, that does not have anymore the type=patch attribute and  remains as garbage.
 
 
-If you want to repackage the application (with SBT and Scala installed) type `sbt assembly`, it will create a file named showMy1.jar in the target/scala-2.10  folder.
 
  
 Limitations

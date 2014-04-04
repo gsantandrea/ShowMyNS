@@ -3,7 +3,9 @@ package showmyns
 
 import scala.sys.process._
 import scala.util.matching.Regex
-
+import spray.json._
+import DefaultJsonProtocol._
+    
 trait GenericNetElem {
   val name: String
 }
@@ -85,7 +87,6 @@ object Actions {
   val sampleOutputs = false //if true use terminal outputs in SampleOutputs 
   val IPRegEx = """\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"""
 
-  //checkers for the interface type (see goo.gl/cfwiR3) 
 
   def getOFPort(iface:String):Option[Int] = {
     
@@ -119,6 +120,7 @@ object Actions {
     flows
   }
     
+  //checkers for the interface type (see goo.gl/cfwiR3) 
   def isPhys(iface: String): Boolean = getPhysIfaces.contains(iface)
 
   def isL2tp(iface: String): Boolean = getSessions exists (_.iface == iface)
@@ -341,7 +343,7 @@ object Actions {
     val ovs_show_out =
       if (sampleOutputs) SampleOutputs.ovs_show
       else if (exitCode("sudo ovs-vsctl show") != 0) { 
-        //println("openvswitch not installed or not running!")
+        println("openvswitch not installed or not running!")
         return List()
       } else "sudo ovs-vsctl show".!!
       
@@ -535,8 +537,51 @@ object Actions {
     case None => throw new Exception(s"No route found for $ip (not even a default route)!")
   }
 
-  def findVLANMode(iface:String):String = {
-    ""
+  /**
+   * Given an OVS port determine the VLAN type (native-tagged, native-untagged,trunk,access) 
+   * see also:    man ovs-vswitchd.conf.db
+   */
+  def getVLANMode(port:String):String = {
+	def stripLast(str:String):String = str.substring(0, str.length-1)  
+    val trunksStr = s"sudo ovs-vsctl --format=json get port $port trunks".!!
+    val trunksStr2 = stripLast(trunksStr)   
+    val tagStr = (s"sudo ovs-vsctl --format=json get port $port tag").!!
+    val tagStr2 = stripLast(tagStr)
+    val vlan_modeStr = s"sudo ovs-vsctl --format=json  get port $port vlan_mode".!!
+    val vlan_modeStr2 = stripLast(vlan_modeStr)
+    
+
+    val trunks= JsonParser(trunksStr2).convertTo[List[Int]]
+	val tagOpt = if (tagStr2=="[]") None else Some(tagStr2.toInt) 
+	val vlan_modeOpt = if (vlan_modeStr2=="[]") None else Some(vlan_modeStr2)
+	//println((trunks,tagOpt,vlan_modeOpt))
+	val trunking = if (trunks.isEmpty) "all" else trunks.mkString(",")
+	val natT = s"native-tagged: trunking [$trunking], ingress untagged packets considered VLAN ${tagOpt.getOrElse("?")}"
+	val natU = s"native-untagged: trunking [$trunking], ingress untagged packets considered VLAN ${tagOpt.getOrElse("?")} (native), <br>egress native VLAN packets exit untagged"
+	val acc = s"access for tag ${tagOpt.getOrElse("?")} "
+	val out = vlan_modeOpt match {
+	  case Some("native-tagged") => 
+	  	natT
+	  case Some("native-untagged") => 
+	  	natU
+	  case Some("trunk") =>
+	    s"trunking ${trunking}"
+	  case Some("access") =>
+	    acc
+	  case None =>
+	    tagOpt match {
+	      case None => s"trunking ${trunking}"
+	      case Some(accessTag) => 
+	        trunks match {
+	          case Nil => acc  
+	          case t =>  natU
+	        }
+	    }
+	}
+    out
   }
-  
+  def execute(cmd:String) = {
+    println(s"-->   $cmd")
+    cmd.!!
+  }
 }

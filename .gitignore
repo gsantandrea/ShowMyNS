@@ -3,6 +3,7 @@
 
 #text editor temp files
 *~
+*.swp
 
 # sbt specific
 dist/*
@@ -27,5 +28,7 @@ project/plugins/project/
 /**/layout.json
 /**/*.sc
 
-#
+#other files
 nohup.out
+build.sbt.orig
+prova1.scala
