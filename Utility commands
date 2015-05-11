@@ -22,6 +22,7 @@ brctl addif lbr5 v1
 #create a sample l2tp tunnel (only the local part) in a namespace
 ip netns exec netns_one bash
 ip tuntap add mode tap v0   
+ip link set v0 up
 ip addr add 10.98.0.1/24 dev v0
 modprobe l2tp_ip   
 modprobe l2tp_ip 6
@@ -30,7 +31,12 @@ modprobe l2tp_eth
 localIP=10.98.0.1
 otherIP=10.98.0.3
 ip l2tp add tunnel tunnel_id 11 peer_tunnel_id 12 encap udp local $localIP remote $otherIP udp_sport 5600 udp_dport 5601
-ip l2tp add session name l2tp_test2 tunnel_id  11 session_id 101 peer_session_id 102 && sudo ip link set l2tp_test1 up mtu 1446
+ip l2tp add session name l2tp_test2 tunnel_id  11 session_id 101 peer_session_id 102 && sudo ip link set l2tp_test2 up mtu 1446
+
+
+#delete l2tp session and tunnel
+ip l2tp del session tunnel_id 11 session_id 101
+ip l2tp del tunnel tunnel_id 11
 
 #####################################################################################################
 #create a OVS bridge with tagged OVS internal ifaces, gre tunnels

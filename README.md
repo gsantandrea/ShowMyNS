@@ -64,13 +64,23 @@ The following network elements are shown:
  * loopback interface ("loopback") 
  * linux bridge management interface ("linuxBridgeInterface")   created when you create a linux bridge ( `sudo brctl addbr ... `)
  * TUN/TAP interface ("tuntap")  created with `sudo ip tuntap add mode tap vnet0`
- * openvswitch system datapath interface ("ovs-system")		
+ * openvswitch system datapath interface ("ovs-system")
  * veth pair ("veth-pair")  created with `ip link add v0 type veth peer name v1`
  * gre tunnel ("gre")  created with "ovs-vsctl add-port ... set interface ... type=gre"
  * patch port  ("patch")   created with `ovs-vsctl add-port ... set interface ... type=patch ...`
  * other OVS port: a OVS port that doesn't fall in any of the previous categories. For example a not completely deleted patch port, that does not have anymore the type=patch attribute and  remains as garbage.
 
 
+JSON OUTPUT
+-----------
+
+You can obtain the same informations in machine-readable format too, in the JSON format! Use the following flags:
+
+  * `--ovsbridges`     show the Open vSwitch bridges
+  * `--linuxbridges`   show the Linux Bridges  
+  * `--ifaces`         show the network interfaces 
+  * `--sessions`       show the L2TP sessions
+  * `--tunnels`        show the L2TP tunnels
 
  
 Limitations
@@ -100,7 +110,7 @@ TODO
 ----
 
 * Doing output parsing is a bad thing(the format may change tomorrow), however a Java API does not seem to exist for OVS. 
-  * Retrieving interface info: http://java.dzone.com/news/network-interface-details-java   
+  * Retrieving interface info: http://java.dzone.com/news/network-interface-details-java
     However this API does not show all interfaces, only those that have an IP.
   * For OVS there seems to be a JSON RPC API
 * maybe restructure the hierarchy. However problems arise if I introduce a parent abstract class for the Ifaces. The problem shows up when I try to drag graph elements.  As pointed in S.O. possible approaches are: 
@@ -120,6 +130,7 @@ VLAN tag
 --------
 * vlan alias created with `ip link .. tag ..`: the VLAN TAG is shown after the @ in the name
 * OVS internal interfaces may have a VLAN tag. However VID doesn't appear in "ip address show" but only in `ovs-vsctl show`.
+
 
 
 	

@@ -70,15 +70,44 @@ case class LinuxBr(name: String, id: String, stp: Boolean, nics: List[String], n
  * Test application
  */
 object Test extends App {
-//  println("Interfaces: \n" + Actions.getAllIfaces.mkString("\n----\n"))
-//  println("\nOVS Bridges: \n" + Actions.getOVSBridges.mkString("\n----\n"))
-//  println("\nLinux bridges: \n" + Actions.getLinuxBridges.mkString("\n") + "\n")
-//  println("\nRoutes: \n" + Actions.getRoutes.mkString("\n----\n"))
-//  println("\nL2tp sessions : \n" + Actions.getSessions.mkString("\n") + "\n")
-//  println("\nL2tp tunnels : \n" + Actions.getTunnels.mkString("\n") + "\n")
-  println(s"port: ${Actions.dumpFlows("br-ex")}")
+  println("Interfaces: \n" + Actions.getAllIfaces.mkString("\n----\n"))
+  println("\nOVS Bridges: \n" + Actions.getOVSBridges.mkString("\n----\n"))
+  println("\nLinux bridges: \n" + Actions.getLinuxBridges.mkString("\n") + "\n")
+  println("\nRoutes: \n" + Actions.getRoutes.mkString("\n----\n"))
+  println("\nL2tp sessions : \n" + Actions.getSessions.mkString("\n") + "\n")
+  println("\nL2tp tunnels : \n" + Actions.getTunnels.mkString("\n") + "\n")
+//  println(s"port: ${Actions.dumpFlows("br-ex")}")
 }
 
+object ShowJSON extends App {
+  import spray.json._
+  import Actions._
+  object MyJsonProtocol extends DefaultJsonProtocol with NullOptions{
+    implicit val interfaceFormat = jsonFormat12(Iface)
+    implicit val OVSPortFormat = jsonFormat5(OVSPort)
+    implicit val OVSBridgeFormat = jsonFormat2(OVSBridge)
+    implicit val LBFormat = jsonFormat5(LinuxBr)
+    implicit val routeFormat = jsonFormat3(NetRoute)
+    implicit val sessionFormat = jsonFormat6(Session)
+    implicit val tunnelFormat = jsonFormat7(Tunnel)
+  }
+
+  import MyJsonProtocol._
+  if (args.length > 0) args(0) match {
+    case "--ovsbridges" =>   println(getOVSBridges.toJson)
+    case "--linuxbridges" => println(getLinuxBridges.toJson)
+    case "--ifaces" => println(getAllIfaces.toJson)
+    case "--routes" => println(getRoutes.toJson)
+    case "--sessions" =>  println(getSessions.toJson)
+    case "--tunnels" => println(getTunnels.toJson)
+  }
+//
+
+//  
+//  
+// 
+// 
+}
 /*
  * Utility functions to get network information
  */
@@ -577,6 +606,7 @@ object Actions {
 	          case t =>  natU
 	        }
 	    }
+    case _ =>  throw new Error(s"VLAN mode option error (${vlan_modeOpt}) !!")
 	}
     out
   }
