@@ -54,8 +54,16 @@ case class Iface(name: String,
     s"namespace: $namespace, index: $index, flags: $flags)"
 }
 
+//case class OVSPort(name: String,
+//  tag: Option[Int],
+//  ovsiface: Option[String],
+//  portType: Option[String],
+//  options: Map[String, String]) extends GenericNetElem
+
 case class OVSPort(name: String,
-  tag: Option[Int],
+  trunks: List[Int],
+  tagOpt: Option[Int],
+  vlan_modeOpt: Option[String],
   ovsiface: Option[String],
   portType: Option[String],
   options: Map[String, String]) extends GenericNetElem
@@ -84,7 +92,7 @@ object ShowJSON extends App {
   import Actions._
   object MyJsonProtocol extends DefaultJsonProtocol with NullOptions{
     implicit val interfaceFormat = jsonFormat12(Iface)
-    implicit val OVSPortFormat = jsonFormat5(OVSPort)
+    implicit val OVSPortFormat = jsonFormat7(OVSPort)
     implicit val OVSBridgeFormat = jsonFormat2(OVSBridge)
     implicit val LBFormat = jsonFormat5(LinuxBr)
     implicit val routeFormat = jsonFormat3(NetRoute)
@@ -320,7 +328,7 @@ object Actions {
       if (isOVSInternal(temp.name)) {
         val br = (ovsbridges find { _.ports exists (_.name == temp.name) }).get //find the OVS bridge containing our interface
         val port = br.ports.find(_.name == temp.name).get
-        iface1 = iface1.copy(ifaceType = "OVSInternal", vlantag = port.tag)
+        iface1 = iface1.copy(ifaceType = "OVSInternal", vlantag = port.tagOpt)
       }
 
       if (isPhys(temp.name)) { iface1 = iface1.copy(ifaceType = "physical") }
@@ -410,7 +418,7 @@ object Actions {
             val tag = tagRegex findFirstIn portprop match {
               case Some(tagRegex(t)) => Some(t)
               case None => None
-            }
+            }  //not used ...
             val typeRegex = """type: (\S+)""".r
             val typ = typeRegex findFirstIn portprop match {
               case Some(typeRegex(n)) => Some(n.replaceAll("\"", ""))
@@ -421,7 +429,9 @@ object Actions {
               case Some(optRegex(n)) => Some(n)
               case None => None
             }
-            OVSPort(portname1, tag.map(_.toInt), ifname, typ, parseOpts(opt)) //parseOpts(opts))
+            val (trunks,tagOpt,vlan_modeOpt) = getVLANFields(portname1)  
+            //OVSPort(portname1, tag.map(_.toInt), ifname, typ, parseOpts(opt)) //parseOpts(opts))
+            OVSPort(portname1, trunks, tagOpt, vlan_modeOpt, ifname, typ, parseOpts(opt)) //parseOpts(opts))
         }
         OVSBridge(brname1, ports)
     }
@@ -566,23 +576,28 @@ object Actions {
     case None => throw new Exception(s"No route found for $ip (not even a default route)!")
   }
 
-  /**
-   * Given an OVS port determine the VLAN type (native-tagged, native-untagged,trunk,access) 
-   * see also:    man ovs-vswitchd.conf.db
-   */
-  def getVLANMode(port:String):String = {
-	def stripLast(str:String):String = str.substring(0, str.length-1)  
+
+  def getVLANFields(port: String): (List[Int],Option[Int],Option[String]) = {
+  	def stripLast(str:String):String = str.substring(0, str.length-1)  
+
     val trunksStr = s"ovs-vsctl --format=json get port $port trunks".!!
     val trunksStr2 = stripLast(trunksStr)   
     val tagStr = (s"ovs-vsctl --format=json get port $port tag").!!
     val tagStr2 = stripLast(tagStr)
     val vlan_modeStr = s"ovs-vsctl --format=json  get port $port vlan_mode".!!
     val vlan_modeStr2 = stripLast(vlan_modeStr)
-    
-
     val trunks= JsonParser(trunksStr2).convertTo[List[Int]]
-	val tagOpt = if (tagStr2=="[]") None else Some(tagStr2.toInt) 
-	val vlan_modeOpt = if (vlan_modeStr2=="[]") None else Some(vlan_modeStr2)
+	  val tagOpt = if (tagStr2=="[]") None else Some(tagStr2.toInt) 
+	  val vlan_modeOpt = if (vlan_modeStr2=="[]") None else Some(vlan_modeStr2)
+    (trunks,tagOpt,vlan_modeOpt)
+  }
+  /**
+   * Given an OVS port determine the VLAN type (native-tagged, native-untagged,trunk,access) 
+   * see also:    man ovs-vswitchd.conf.db
+   */
+  def getVLANMode(port:String):String = {
+  
+    val (trunks,tagOpt,vlan_modeOpt) = getVLANFields(port)  
 	//println((trunks,tagOpt,vlan_modeOpt))
 	val trunking = if (trunks.isEmpty) "all" else trunks.mkString(",")
 	val natT = s"native-tagged: trunking [$trunking], ingress untagged packets considered VLAN ${tagOpt.getOrElse("?")}"

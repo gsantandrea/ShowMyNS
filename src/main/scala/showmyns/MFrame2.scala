@@ -69,10 +69,6 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
               val state = "<br> state: " + iface.state
               val mac = "<br> MAC: " + iface.macAddr
               val addr = s"<br>adresses: <br>${iface.addresses.mkString("<br> ")}"
-              val tag = iface.vlantag match {
-                case Some(tag) => s"<br>VLAN ID = $tag"
-                case None => ""
-              }
               val tun = if (iface.ifaceType == "l2tp") {
                 val session = getSessions.find(_.iface == iface.name).get
                 val tunnel = getTunnels.find(_.tunId == session.tunId).get
@@ -85,9 +81,16 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
               val namespace = "<br> namespace: " + iface.namespace.getOrElse("")
               val flags = "<br> flags: " + iface.flags
               val ofport= {
-                val p=Actions.getOFPort(iface.name)
+                val p = Actions.getOFPort(iface.name)
                 p match {  
                   case Some(_) => "<br> ofport: " + p.get
+                  case None => ""
+                }
+              }
+              val tag = {
+                if (ofport != "") ""      //the interface is connected to an OVS bridge: show vlanMode instead
+                else iface.vlantag match {
+                  case Some(tag) => s"<br>VLAN ID = $tag"
                   case None => ""
                 }
               }
