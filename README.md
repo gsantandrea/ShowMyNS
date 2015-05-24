@@ -82,6 +82,9 @@ You can obtain the same informations in machine-readable format too, in the JSON
   * `--sessions`       show the L2TP sessions
   * `--tunnels`        show the L2TP tunnels
 
+Note that you have to specify "ShowJSON" as the main class. Example:
+  *  `sudo java -cp target/scala-2.10/showMy1.jar showmyns.ShowJSON --ifaces | python -m json.tool | less -S`
+
  
 Limitations
 -----------
