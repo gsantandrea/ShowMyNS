@@ -67,7 +67,7 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
             case iface: Iface =>
               val typ = "type: " + iface.ifaceType
               val state = "<br> state: " + iface.state
-              val mac = "<br> MAC: " + iface.macAddr
+              val mac = "<br> MAC: " + iface.macAddr.getOrElse("")
               val addr = s"<br>adresses: <br>${iface.addresses.mkString("<br> ")}"
               val tun = if (iface.ifaceType == "l2tp") {
                 val session = getSessions.find(_.iface == iface.name).get

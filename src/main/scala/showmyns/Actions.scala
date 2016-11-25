@@ -30,7 +30,7 @@ case class TempIface(name: String,
   index: Int,
   namespace: Option[String],
   state: String,
-  mac: String,
+  mac: Option[String],
   addrList: List[(String, String)],
   mtu: Int,
   flags: List[String])
@@ -39,7 +39,7 @@ case class TempIface(name: String,
 case class Iface(name: String,
   ifaceType: String,
   state: String,
-  macAddr: String,
+  macAddr: Option[String],
   addresses: List[(String, String)],
   mtu: Int,
   vlantag: Option[Int],
@@ -142,7 +142,7 @@ object Actions {
   
   def dumpFlows (ovsbridge:String):Option[String]={
      val out= try {
-      val o1=(s"ovs-ofctl dump-flows ${ovsbridge}").!!//(ProcessLogger(line => ())) //suppress output
+      val o1=(s"ovs-ofctl dump-flows ${ovsbridge}").!! //(ProcessLogger(line => ())) //suppress output
       o1.split("\n").drop(1).map{
         str => str.split(",").drop(6).mkString(",") 
       }.mkString("\n")
@@ -258,9 +258,9 @@ object Actions {
               case None => throw new Error(s"ERR: no state found for $ifIndex!!")
             }
             val macRegEx = """link/\S+ (\S+)""".r
-            val macAddr = (macRegEx findFirstIn rest) match {
-              case Some(macRegEx(ethMatch)) => ethMatch
-              case None => throw new Error(s"ERR: no mac found in $ifIndex!!")
+            val macAddr:Option[String] = (macRegEx findFirstIn rest) match {
+              case Some(macRegEx(ethMatch)) => Some(ethMatch)
+              case None => None //throw new Error(s"ERR: no mac found in $ifIndex!!")
             }
 
             val addrRegEx = """inet (\S+)( brd \S+)? scope \S+ (\S+)""".r
