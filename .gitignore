@@ -32,3 +32,5 @@ project/plugins/project/
 nohup.out
 build.sbt.orig
 prova1.scala
+.idea/
+project/project/
