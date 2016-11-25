@@ -241,8 +241,10 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
       ("veth", vethStyle),
       ("patch", patchStyle),
       ("linbrif", linbrIfStyle),
-      ("otherOVS", otherOVSStyle)
-      )
+      ("otherOVS", otherOVSStyle),
+      ("otherIface", otherIfaceStyle)
+
+    )
 
     graph.getModel().beginUpdate()
 
@@ -329,7 +331,15 @@ class MFrame2(s: String, orgLayout: Boolean) extends JFrame(s) with KeyListener 
       ifaces filter (_.ifaceType == "tuntap") map { iface =>
         graph.insertVertex(parent1, null, iface, incXstep(100), hdraw, 80, 30, "tuntap", false)
       }
-      
+
+      //draw TUN/TAP interfaces
+      hdraw = h - 100
+      xstep = 20
+      ifaces filter (_.ifaceType == "to be determined") map { iface =>
+        graph.insertVertex(parent1, null, iface, incXstep(100), hdraw, 80, 30, "otherIface", false)
+      }
+
+
       //draw remaning OVS ports
       //for example patch port that are not completely deleted and remain as garbage
       //TODO: why do these ports exist?

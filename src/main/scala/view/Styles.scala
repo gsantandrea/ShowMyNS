@@ -85,5 +85,11 @@ object Styles {
       mxConstants.STYLE_ROUNDED -> new java.lang.Boolean(false),
       mxConstants.STYLE_FONTCOLOR -> "#000000",
       mxConstants.STYLE_FILLCOLOR -> "#4a73b9")
-  
+  val otherIfaceStyle: Map[String, Object] =
+    Map(mxConstants.STYLE_SHAPE -> mxConstants.SHAPE_RECTANGLE,
+      mxConstants.STYLE_OPACITY -> new java.lang.Integer(80),
+      mxConstants.STYLE_ROUNDED -> new java.lang.Boolean(false),
+      mxConstants.STYLE_FONTCOLOR -> "#000000",
+      mxConstants.STYLE_FILLCOLOR -> "#c0ce9a")
+
 }
