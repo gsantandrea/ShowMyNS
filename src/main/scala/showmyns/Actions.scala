@@ -176,7 +176,8 @@ object Actions {
   }
 
   //a vlan interface created with "ip link .. tag" or vconfig and shown with an @ in the name 
-  def isVLanAlias(iface: String): Boolean = iface contains "@" //exitCode(s"ls /proc/net/vlan/${iface.name}") == 0 
+  def isVLanAlias(iface: String): Boolean = iface.matches("""(.+)\.\d+@\1$""")
+  //exitCode(s"ls /proc/net/vlan/${iface}") == 0
 
   //def isTunTap2(iface: String): Boolean = isTunTap(Iface(iface, "", "", "", List(), 0, None, None, None, None, 0)) //utility method
 
