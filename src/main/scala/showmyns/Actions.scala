@@ -351,9 +351,16 @@ object Actions {
       if (isVLanAlias(temp.name)) {
         val tag = temp.name.substring(temp.name.indexOf('.') + 1, temp.name.indexOf('@')).toInt //extract tag from interface name
         val physStr = temp.name.substring(0, temp.name.indexOf('.'))
-        iface1 = iface1.copy(ifaceType = "vlan_alias", vlantag = Some(tag), ifaceUsed = Some(physStr))
+
+        iface1 = iface1.copy( ifaceType = "vlan_alias", vlantag = Some(tag), ifaceUsed = Some(physStr))
       }
+
       //if (iface1.ifaceType == "<still to be determined>") throw new Error(s"Interface type not found for ${temp.name} !")
+      if (iface1.name.contains("@")) {
+        iface1 = iface1.copy(name = iface1.name.substring(0, iface1.name.indexOf('@')) )
+      }
+
+
       iface1
     }
 
