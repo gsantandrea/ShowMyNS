@@ -489,7 +489,7 @@ object Actions {
   def execInAllNS(cmd: String): List[(String, String)] = {
     val namespaces = getNamespaces().toList
     for (ns <- namespaces) yield {
-      val cmd_out = if (ns.isEmpty) cmd.!! else s"ip netns exec $ns $cmd".!!
+      val cmd_out = if (ns.isEmpty) cmd.!! else s"ip netns exec '$ns' $cmd".!!
       (ns -> cmd_out)
     }
   }
