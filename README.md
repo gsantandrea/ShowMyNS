@@ -106,8 +106,17 @@ From packages.debian.org :
 
 Troubleshooting
 --------
-The program terminates with the error: "seting the network namespace failed". 
-It's a known namespace linux problem. Reboot the machine.
+The program terminates with the error: `"seting the network namespace failed"` 
+it's a known namespace problem in Linux. Simply reboot the machine.
+
+On Ubuntu 16.04 64 bit with oracle-jdk8, if the program terminates with error: 
+
+`Exception in thread "main" java.lang.UnsatisfiedLinkError: /usr/lib/jvm/java-8-oracle/jre/lib/amd64/libawt_xawt.so: libXrender.so.1: cannot open shared object file: No such file or directory`  
+
+install the following packages:
+
+
+`sudo apt-get install libxrender1 libxtst6 libxi6`
 
 TODO
 ----
