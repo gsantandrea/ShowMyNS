@@ -1,11 +1,11 @@
 
 package showmyns
 
-import scala.sys.process._
-import scala.util.matching.Regex
+import spray.json.DefaultJsonProtocol._
 import spray.json._
-import DefaultJsonProtocol._
-    
+
+import scala.sys.process._
+
 trait GenericNetElem {
   val name: String
 }
@@ -88,8 +88,8 @@ object Test extends App {
 }
 
 object ShowJSON extends App {
-  import spray.json._
   import Actions._
+  import spray.json._
   object MyJsonProtocol extends DefaultJsonProtocol with NullOptions{
     implicit val interfaceFormat = jsonFormat12(Iface)
     implicit val OVSPortFormat = jsonFormat7(OVSPort)
@@ -109,12 +109,8 @@ object ShowJSON extends App {
     case "--sessions" =>  println(getSessions.toJson)
     case "--tunnels" => println(getTunnels.toJson)
   }
-//
 
-//  
-//  
-// 
-// 
+
 }
 /*
  * Utility functions to get network information
@@ -130,7 +126,7 @@ object Actions {
     val out= try {
       (s"ovs-vsctl get interface $iface ofport").!!(ProcessLogger(line => ())) //suppress output
     }catch {
-      case e:Exception => ""
+      case e:Exception => println(s"Catched exception $e"); ""
     }
     val port = out match {
       case "" => None
@@ -226,9 +222,10 @@ object Actions {
   }
 
   def getNamespaces(): Array[String] = {
-    val nsStr = "ip netns list".!!
-    val namespaces = if (nsStr != "") nsStr.split("\n") else Array[String]()
-    if (namespaces.isEmpty) Array("") else "" +: namespaces //add default namespace as empty string
+//    val nsStr = "ip netns list".!!
+//    val namespaces = if (nsStr != "") nsStr.split("\n") else Array[String]()
+//    if (namespaces.isEmpty) Array("") else "" +: namespaces //add default namespace as empty string
+    "" +:  (new java.io.File("/var/run/netns").listFiles.map(_.getName))
   }
 
  
@@ -237,7 +234,7 @@ object Actions {
    * Parse the bash command "ip addr show" in every namespace
    */
   def parseIpAddrOutputs(): List[TempIface] = {
-    val outputs = if (sampleOutputs) SampleOutputs.ipaddr else execInAllNS("ip address show")
+    val outputs = if (sampleOutputs) SampleOutputs.ipaddr else execInAllNS(List("ip","address","show"))
     
     val regEx = """(?m)^(\d+): """.r; 	//regex "multi line mode" set
     val tempIfList = 
@@ -452,7 +449,7 @@ object Actions {
     if (exitCode("ip l2tp show tunnel") != 0) { //println("ip l2tp not available in this host." )
       return List()
     }
-    val tunnels = execInAllNS("ip l2tp show tunnel")
+    val tunnels = execInAllNS(List("ip","l2tp","show","tunnel"))
 
     tunnels.flatMap {
       case (ns, tun) =>
@@ -474,7 +471,7 @@ object Actions {
     if (exitCode("ip l2tp show session") != 0) { //println("ip l2tp not available in this host." )
       return List()
     }
-    val sessions = execInAllNS("ip l2tp show session")
+    val sessions = execInAllNS(List("ip","l2tp","show","session"))
     sessions.flatMap {
       case (ns, sess) =>
         val namespace = if (ns == "") None else Some(ns)
@@ -486,10 +483,14 @@ object Actions {
     }
   }
 
-  def execInAllNS(cmd: String): List[(String, String)] = {
-    val namespaces = getNamespaces().toList
-    for (ns <- namespaces) yield {
-      val cmd_out = if (ns.isEmpty) cmd.!! else s"ip netns exec '$ns' $cmd".!!
+  def execInAllNS(cmd: List[String]): List[(String, String)] = {  //TODO: cmd should be a List<String>
+    for (ns <- getNamespaces().toList) yield {
+      val cmd_out = if (ns.isEmpty) {
+        cmd.!!
+      } else {
+//        s"ip netns exec $ns $cmd".!!
+        (Seq("ip", "netns", "exec", ns) ++ cmd) !!
+      }
       (ns -> cmd_out)
     }
   }
@@ -503,7 +504,7 @@ object Actions {
    */
   def getLinuxBridges: List[LinuxBr] = {
 
-    val br_outputs0 = execInAllNS("brctl show")
+    val br_outputs0 = execInAllNS(List("brctl","show"))
     val br_outputs = br_outputs0.map {
       case (ns, out) => (ns, out.substring(out.indexOf('\n') + 1)) //remove first line
     }
