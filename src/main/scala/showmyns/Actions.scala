@@ -230,7 +230,7 @@ object Actions {
       return "" +: new java.io.File("/var/run/netns").listFiles.map(_.getName)
     }
     catch {
-        case _:NullPointerException => return Array[String]()
+        case _:NullPointerException => return Array[String]("")
         case other:Exception => throw other
       }
   }
