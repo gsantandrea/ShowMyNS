@@ -225,8 +225,17 @@ object Actions {
 //    val nsStr = "ip netns list".!!
 //    val namespaces = if (nsStr != "") nsStr.split("\n") else Array[String]()
 //    if (namespaces.isEmpty) Array("") else "" +: namespaces //add default namespace as empty string
-    "" +:  (new java.io.File("/var/run/netns").listFiles.map(_.getName))
+
+    try {
+      return "" +: new java.io.File("/var/run/netns").listFiles.map(_.getName)
+    }
+    catch {
+        case _:NullPointerException => return Array[String]()
+        case other:Exception => throw other
+      }
   }
+
+
 
  
 

@@ -124,6 +124,26 @@ Troubleshooting
     ```Exception in thread "main" java.lang.UnsatisfiedLinkError: /usr/lib/jvm/java-8-oracle/jre/lib/amd64/libawt_xawt.so: libXrender.so.1: cannot open shared object file: No such file or directory```  
 
     then install the following packages: `libxrender1 libxtst6 libxi6`
+    
+* If the program terminates with the error:
+```
+Exception in thread "AWT-EventQueue-0" java.lang.NullPointerException
+        at scala.collection.mutable.ArrayOps$ofRef$.length$extension(ArrayOps.scala:114)
+        at scala.collection.mutable.ArrayOps$ofRef.length(ArrayOps.scala:114)
+        at scala.collection.SeqLike$class.size(SeqLike.scala:106)
+        at scala.collection.mutable.ArrayOps$ofRef.size(ArrayOps.scala:108)
+        at scala.collection.mutable.Builder$class.sizeHint(Builder.scala:69)
+        at scala.collection.mutable.ArrayBuilder.sizeHint(ArrayBuilder.scala:24)
+        at scala.collection.TraversableLike$class.builder$1(TraversableLike.scala:240)
+        at scala.collection.TraversableLike$class.map(TraversableLike.scala:243)
+        at scala.collection.mutable.ArrayOps$ofRef.map(ArrayOps.scala:108)
+        at showmyns.Actions$.getNamespaces(Actions.scala:228)
+        at showmyns.Actions$.execInAllNS(Actions.scala:487)
+        at showmyns.Actions$.parseIpAddrOutputs(Actions.scala:237)
+        at showmyns.Actions$.getAllIfaces(Actions.scala:287)
+```
+you have to create at least one namespace in your system so that the folder `/var/run/netns` :
+```sudo ip netns add n1; sudo ip netns del n1;```
 
 TODO
 ----
